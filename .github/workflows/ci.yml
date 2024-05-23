@@ -9,17 +9,31 @@ on:
     - cron: "0 8 * * SUN"
   workflow_dispatch:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   default:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
           - macos-latest
+          - macos-11
+          - macos-12
+          - macos-13
+          - macos-14  # M1 CPU
+          - windows-latest
+          - windows-2019
+          - windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run setup-postgres
         uses: ./
@@ -27,12 +41,13 @@ jobs:
 
       - name: Run tests
         run: |
-          python3 -m pip install --upgrade pip pytest psycopg
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install pytest psycopg
           python3 -m pytest -vv test_action.py
         env:
           CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
           EXPECTED_CONNECTION_URI: postgresql://postgres:postgres@localhost:5432/postgres
-        shell: bash
 
   parametrized:
     runs-on: ${{ matrix.os }}
@@ -40,10 +55,19 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
           - macos-latest
+          - macos-11
+          - macos-12
+          - macos-13
+          - macos-14  # M1 CPU
+          - windows-latest
+          - windows-2019
+          - windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run setup-postgres
         uses: ./
@@ -56,9 +80,10 @@ jobs:
 
       - name: Run tests
         run: |
-          python3 -m pip install --upgrade pip pytest psycopg
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install pytest psycopg
           python3 -m pytest -vv test_action.py
         env:
           CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
           EXPECTED_CONNECTION_URI: postgresql://yoda:GrandMaster@localhost:34837/jedi_order
-        shell: bash
