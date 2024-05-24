@@ -25,9 +25,10 @@ steps:
   - uses: nyurik/action-setup-postgis@v2
     id: postgres
 
-  - run: psql "$DB_CONN_STR" -c 'SELECT 1;'
+  - name: Test PostGIS is installed
+    run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' "$CONNECTION_STR"
     env:
-      DB_CONN_STR: ${{ steps.postgres.outputs.connection-uri }}
+      CONNECTION_STR: ${{ steps.postgres.outputs.connection-uri }}
 ```
 
 > [!IMPORTANT]
@@ -79,7 +80,8 @@ steps:
       port: 34837
     id: postgres
 
-  - run: psql "$CONNECTION_STR" -c 'SELECT 1;'
+  - name: Test PostGIS is installed
+    run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' "$CONNECTION_STR"
     env:
       CONNECTION_STR: ${{ steps.postgres.outputs.connection-uri }}
 ```
