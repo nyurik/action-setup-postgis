@@ -9,30 +9,50 @@ on:
     - cron: "0 8 * * SUN"
   workflow_dispatch:
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   default:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
           - macos-latest
+          # - macos-11  # Some build issues, and it takes 4hr+ to build dependencies. Not worthy.
+          - macos-12
+          - macos-13
+          - macos-14  # M1 CPU
+          - windows-latest
+          - windows-2019
+          - windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Run setup-postgres
+      - name: Run setup-postgis
         uses: ./
         id: postgres
 
+      - name: Run setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
       - name: Run tests
         run: |
-          python3 -m pip install --upgrade pip pytest psycopg
+          python3 -m pip install --upgrade pip pytest psycopg furl
           python3 -m pytest -vv test_action.py
         env:
           CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
+          SERVICE_NAME: ${{ steps.postgres.outputs.service-name }}
           EXPECTED_CONNECTION_URI: postgresql://postgres:postgres@localhost:5432/postgres
-        shell: bash
+          EXPECTED_SERVICE_NAME: postgres
 
   parametrized:
     runs-on: ${{ matrix.os }}
@@ -43,9 +63,9 @@ jobs:
           - windows-latest
           - macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Run setup-postgres
+      - name: Run setup-postgis
         uses: ./
         with:
           username: yoda
@@ -54,11 +74,17 @@ jobs:
           port: 34837
         id: postgres
 
+      - name: Run setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
       - name: Run tests
         run: |
-          python3 -m pip install --upgrade pip pytest psycopg
+          python3 -m pip install --upgrade pip pytest psycopg furl
           python3 -m pytest -vv test_action.py
         env:
           CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
+          SERVICE_NAME: ${{ steps.postgres.outputs.service-name }}
           EXPECTED_CONNECTION_URI: postgresql://yoda:GrandMaster@localhost:34837/jedi_order
-        shell: bash
+          EXPECTED_SERVICE_NAME: yoda
