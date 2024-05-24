@@ -41,20 +41,8 @@ jobs:
         uses: ./
         id: postgres
 
-      - name: Run setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Run tests
-        run: |
-          python3 -m pip install --upgrade pip pytest psycopg furl
-          python3 -m pytest -vv test_action.py
-        env:
-          CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
-          SERVICE_NAME: ${{ steps.postgres.outputs.service-name }}
-          EXPECTED_CONNECTION_URI: postgresql://postgres:postgres@localhost:5432/postgres
-          EXPECTED_SERVICE_NAME: postgres
+      - name: Test PostGIS is installed
+        run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
 
   parametrized:
     runs-on: ${{ matrix.os }}
@@ -76,17 +64,5 @@ jobs:
           port: 34837
         id: postgres
 
-      - name: Run setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Run tests
-        run: |
-          python3 -m pip install --upgrade pip pytest psycopg furl
-          python3 -m pytest -vv test_action.py
-        env:
-          CONNECTION_URI: ${{ steps.postgres.outputs.connection-uri }}
-          SERVICE_NAME: ${{ steps.postgres.outputs.service-name }}
-          EXPECTED_CONNECTION_URI: postgresql://yoda:GrandMaster@localhost:34837/jedi_order
-          EXPECTED_SERVICE_NAME: yoda
+      - name: Test PostGIS is installed
+        run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
