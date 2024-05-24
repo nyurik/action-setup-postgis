@@ -57,10 +57,10 @@ runs:
         # sudo apt-get install postgis
       shell: bash
 
-    - name: Install PostGIS (Mac)
+    - uses: tecolicom/actions-use-homebrew-tools@v1
       if: runner.os == 'macOS'
-      run: brew install postgis || true
-      shell: bash
+      with:
+        tools: 'postgis'
 
       # A workaround for postgis installation bug on macOS. Might not be needed in the future
     - name: Brew workaround 2 (Mac)
