@@ -41,8 +41,14 @@ jobs:
         uses: ./
         id: postgres
 
-      - name: Test PostGIS is installed
+      - name: Test PostGIS with connection URI
         run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
+
+      - name: Test PostGIS with service name
+        run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();'
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
+
 
   parametrized:
     runs-on: ${{ matrix.os }}
@@ -64,5 +70,10 @@ jobs:
           port: 34837
         id: postgres
 
-      - name: Test PostGIS is installed
+      - name: Test PostGIS with connection URI
         run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
+
+      - name: Test PostGIS with service name
+        run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();'
+        env:
+          PGSERVICE: ${{ steps.postgres.outputs.service-name }}
