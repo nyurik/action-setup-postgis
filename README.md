@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/github-nyurik/action--setup--postgis-8da0cb?logo=github)](https://github.com/nyurik/action-setup-postgis)
 [![CI build](https://github.com/nyurik/action-setup-postgis/actions/workflows/ci.yml/badge.svg)](https://github.com/nyurik/action-setup-postgis/actions)
-[![Marketplace](https://img.shields.io/badge/market-setup--postgis-6F42C1?logo=github)](https://github.com/marketplace/actions/setup-postgis-service-for-linux-macos-windows)
+[![Marketplace](https://img.shields.io/badge/market-setup--postgis-6F42C1?logo=github)](https://github.com/marketplace/actions/setup-postgresql-and-postgis-for-linux-macos-windows)
 
 This GitHub action sets up a PostgreSQL server with PostGIS extension. The code is based on
 the [ikalnytskyi/action-setup-postgres](https://github.com/ikalnytskyi/action-setup-postgres) action.
