@@ -62,6 +62,7 @@ runs:
       if: runner.os == 'macOS'
       with:
         tools: 'postgis'
+        cache: no
 
       # A workaround for postgis installation bug on macOS. Might not be needed in the future
     - name: Brew workaround 2 (Mac)
