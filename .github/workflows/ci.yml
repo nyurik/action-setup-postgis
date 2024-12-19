@@ -27,8 +27,6 @@ jobs:
           - ubuntu-22.04
           - ubuntu-20.04
           - macos-latest
-          # - macos-11  # Some build issues, and it takes 4hr+ to build dependencies. Not worthy.
-          - macos-12
           - macos-13
           - macos-14  # M1 CPU
           - windows-latest
