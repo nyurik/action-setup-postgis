@@ -62,14 +62,7 @@ runs:
       if: runner.os == 'macOS'
       with:
         tools: 'postgis'
-
-      # A workaround for postgis installation bug on macOS. Might not be needed in the future
-    - name: Brew workaround 2 (Mac)
-      if: runner.os == 'macOS'
-      run: brew link --overwrite python@3.11
-      continue-on-error: true
-      shell: bash
-
+        
     - name: Decide Postgis version (Windows)
       # Download the list of available Postgis versions, and decide which one to use
       if: runner.os == 'Windows'
