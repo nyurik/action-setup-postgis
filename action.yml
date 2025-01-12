@@ -94,7 +94,7 @@ runs:
             Write-Error "Could not find PostGIS bundle at either $pgis_bundle_url_main or $pgis_bundle_url_archive"
             exit 1
           }
-        }else{
+        } else {
           $postgis_page = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION"
           echo "Detecting PostGIS version from $postgis_page for PostgreSQL $PG_VERSION"
           $pgis_bundle = (Invoke-WebRequest -Uri $postgis_page -ErrorAction Stop).Links.Where({$_.href -match "^postgis.*zip$"}).href
