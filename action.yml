@@ -21,6 +21,10 @@ inputs:
     description: The server port to listen on.
     default: "5432"
     required: false
+  postgis_version:
+    description: The version of PostGIS to install.
+    default: ""
+    required: false
   cached-dir:
     # TODO: move to runner's temp dir, help wanted
     description: Where should the temporary downloads be placed. Used to download and cache PostGIS binary.
@@ -71,15 +75,37 @@ runs:
       run: |
         echo "PowerShell version: ${PSVersionTable.PSVersion}"
         $PG_VERSION = Split-Path $env:PGROOT -Leaf
-        $postgis_page = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION"
-        echo "Detecting PostGIS version from $postgis_page for PostgreSQL $PG_VERSION"
-        $pgis_bundle = (Invoke-WebRequest -Uri $postgis_page -ErrorAction Stop).Links.Where({$_.href -match "^postgis.*zip$"}).href
-        if (!$pgis_bundle) {
-          Write-Error "Could not find latest PostGIS version in $postgis_page that would match  ^postgis.*zip$  pattern"
-          exit 1
+        if ("${{ inputs.postgis_version }}" -ne "") {
+          $pgis_bundle = "postgis-bundle-pg$PG_VERSION-${{ inputs.postgis_version }}x64"
+          $pgis_bundle_url_main = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION/$pgis_bundle.zip"
+          $pgis_bundle_url_archive = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION/archive/$pgis_bundle.zip"
+          $pgis_bundle_url = $null
+          $urls = @($pgis_bundle_url_main, $pgis_bundle_url_archive)
+          foreach ($url in $urls) {
+            try {
+              Invoke-WebRequest -Uri $url -Method Head -ErrorAction Stop
+              $pgis_bundle_url = $url
+              break
+            } catch {
+              continue
+            }
+          }
+          if ($pgis_bundle_url -eq $null) {
+            Write-Error "Could not find PostGIS bundle at either $pgis_bundle_url_main or $pgis_bundle_url_archive"
+            exit 1
+          }
+        }else{
+          $postgis_page = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION"
+          echo "Detecting PostGIS version from $postgis_page for PostgreSQL $PG_VERSION"
+          $pgis_bundle = (Invoke-WebRequest -Uri $postgis_page -ErrorAction Stop).Links.Where({$_.href -match "^postgis.*zip$"}).href
+          if (!$pgis_bundle) {
+            Write-Error "Could not find latest PostGIS version in $postgis_page that would match  ^postgis.*zip$  pattern"
+            exit 1
+          }
+          $pgis_bundle = [IO.Path]::ChangeExtension($pgis_bundle, [NullString]::Value)
+          $pgis_bundle_url = "$postgis_page/$pgis_bundle.zip"
         }
-        $pgis_bundle = [IO.Path]::ChangeExtension($pgis_bundle, [NullString]::Value)
-        $pgis_bundle_url = "$postgis_page/$pgis_bundle.zip"
+
         Add-Content $env:GITHUB_OUTPUT "pgis_bundle=$pgis_bundle"
         Add-Content $env:GITHUB_OUTPUT "pgis_bundle_url=$pgis_bundle_url"
 

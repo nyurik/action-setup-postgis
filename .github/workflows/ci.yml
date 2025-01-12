@@ -66,6 +66,7 @@ jobs:
           password: GrandMaster
           database: jedi_order
           port: 34837
+          postgis_version: 3.3.3
         id: postgres
 
       - name: Test PostGIS with connection URI
