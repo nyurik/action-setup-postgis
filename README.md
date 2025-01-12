@@ -37,6 +37,7 @@ steps:
 | password   | The password of the user to setup.                                                                   | `postgres`  |
 | database   | The database name to setup and grant permissions to created user.                                    | `postgres`  |
 | port       | The server port to listen on.                                                                        | `5432`      |
+| postgis_version       | The PostGIS version would be installed. Optional and for Windows runner only by now                                                                        | If leavel this option empty, the latest PostGIS matched with current Postgres would be chosen      |
 | cached-dir | Where should the temporary downloads be placed. Used to download and cache PostGIS binary.           | `downloads` |
 
 #### Outputs
