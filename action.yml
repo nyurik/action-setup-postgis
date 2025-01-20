@@ -21,6 +21,14 @@ inputs:
     description: The server port to listen on.
     default: "5432"
     required: false
+  postgres-version:
+    description: The version of PostgreSQL to install.
+    default: "17"
+    required: false
+  postgis_version:
+    description: The version of PostGIS to install.
+    default: ""
+    required: false
   cached-dir:
     # TODO: move to runner's temp dir, help wanted
     description: Where should the temporary downloads be placed. Used to download and cache PostGIS binary.
@@ -36,13 +44,23 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Setup PostgreSQL for Linux/macOS/Windows
+      id: pg
+      uses: ikalnytskyi/action-setup-postgres@v7
+      with:
+        username: "${{ inputs.username }}"
+        password: "${{ inputs.password }}"
+        database: "${{ inputs.database }}"
+        port: "${{ inputs.port }}"
+        postgres-version: "${{ inputs.postgres-version }}"
+        
     - name: Install PostGIS (Linux)
       if: runner.os == 'Linux'
       run: |
-        # Detect installed PostgreSQL version
-        PG_VERSION=$(apt list --installed | grep -E 'postgresql-[0-9.]+' | sed -rn 's/.*postgresql-([0-9.]+).*/\1/p')
-        [[ "$PG_VERSION" =~ ^[0-9.]+$ ]] || (echo "Failed to detect Postgres version" && exit 1)
-        echo "Detected PostgreSQL version: $PG_VERSION"
+        # Detect installed PostgreSQL version (major only)
+        PG_VERSION=$(postgres --version | awk '{print $3}' | cut -d. -f1)
+        [[ "$PG_VERSION" =~ ^[0-9]+$ ]] || (echo "Failed to detect Postgres major version" && exit 1)
+        echo "Detected PostgreSQL major version: $PG_VERSION"
         
         # Install PostGIS
         REPO_URL="https://apt.postgresql.org/pub/repos/apt/"
@@ -50,36 +68,71 @@ runs:
         echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] $REPO_URL $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
         sudo apt update
         sudo apt-get install postgresql-$PG_VERSION-postgis-3
-        
-        # sudo apt install curl ca-certificates gnupg
-        # curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null
-        # sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-        # sudo apt update        
-        # sudo apt-get install postgis
       shell: bash
 
-    - uses: tecolicom/actions-use-homebrew-tools@v1
+    - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
-      with:
-        tools: 'postgis'
+      shell: bash
+      run: brew install postgis
         
+    - name: Detect PostgreSQL Version (Windows)
+      if: runner.os == 'Windows'
+      id: pg-version
+      shell: pwsh
+      run: |
+        echo "PowerShell version: ${PSVersionTable.PSVersion}"
+        # Get major version number (first 2 digits) from PostgreSQL server version number (format: XXYYZZ)
+        $PG_VERSION = psql -t -A -c "SHOW server_version_num" '${{ steps.pg.outputs.connection-uri }}' | ForEach-Object { $_.Substring(0,2) }
+        echo "Using PostgreSQL version: $PG_VERSION"
+        Add-Content $env:GITHUB_OUTPUT "version=$PG_VERSION"
+
+    - name: Get PGDATA directory (Windows)
+      if: runner.os == 'Windows'
+      id: pgdata
+      shell: pwsh
+      run: |
+        $PGDATA = psql -t -A -c "SHOW data_directory;" '${{ steps.pg.outputs.connection-uri }}'
+        echo "PGDATA directory: $PGDATA"
+        echo "PGDATA=$PGDATA" >> $env:GITHUB_ENV
+
     - name: Decide Postgis version (Windows)
-      # Download the list of available Postgis versions, and decide which one to use
       if: runner.os == 'Windows'
       id: postgis-ver
       shell: pwsh
       run: |
-        echo "PowerShell version: ${PSVersionTable.PSVersion}"
-        $PG_VERSION = Split-Path $env:PGROOT -Leaf
-        $postgis_page = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION"
-        echo "Detecting PostGIS version from $postgis_page for PostgreSQL $PG_VERSION"
-        $pgis_bundle = (Invoke-WebRequest -Uri $postgis_page -ErrorAction Stop).Links.Where({$_.href -match "^postgis.*zip$"}).href
-        if (!$pgis_bundle) {
-          Write-Error "Could not find latest PostGIS version in $postgis_page that would match  ^postgis.*zip$  pattern"
-          exit 1
+        $PG_VERSION = '${{ steps.pg-version.outputs.version }}'
+        
+        if ("${{ inputs.postgis_version }}" -ne "") {
+          $pgis_bundle = "postgis-bundle-pg$PG_VERSION-${{ inputs.postgis_version }}x64"
+          $pgis_bundle_url_main = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION/$pgis_bundle.zip"
+          $pgis_bundle_url_archive = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION/archive/$pgis_bundle.zip"
+          $pgis_bundle_url = $null
+          $urls = @($pgis_bundle_url_main, $pgis_bundle_url_archive)
+          foreach ($url in $urls) {
+            try {
+              Invoke-WebRequest -Uri $url -Method Head -ErrorAction Stop
+              $pgis_bundle_url = $url
+              break
+            } catch {
+              continue
+            }
+          }
+          if ($pgis_bundle_url -eq $null) {
+            Write-Error "Could not find PostGIS bundle at either $pgis_bundle_url_main or $pgis_bundle_url_archive"
+            exit 1
+          }
+        } else {
+          $postgis_page = "https://download.osgeo.org/postgis/windows/pg$PG_VERSION"
+          echo "Detecting PostGIS version from $postgis_page for PostgreSQL $PG_VERSION"
+          $pgis_bundle = (Invoke-WebRequest -Uri $postgis_page -ErrorAction Stop).Links.Where({$_.href -match "^postgis.*zip$"}).href
+          if (!$pgis_bundle) {
+            Write-Error "Could not find latest PostGIS version in $postgis_page that would match  ^postgis.*zip$  pattern"
+            exit 1
+          }
+          $pgis_bundle = [IO.Path]::ChangeExtension($pgis_bundle, [NullString]::Value)
+          $pgis_bundle_url = "$postgis_page/$pgis_bundle.zip"
         }
-        $pgis_bundle = [IO.Path]::ChangeExtension($pgis_bundle, [NullString]::Value)
-        $pgis_bundle_url = "$postgis_page/$pgis_bundle.zip"
+
         Add-Content $env:GITHUB_OUTPUT "pgis_bundle=$pgis_bundle"
         Add-Content $env:GITHUB_OUTPUT "pgis_bundle_url=$pgis_bundle_url"
 
@@ -116,25 +169,29 @@ runs:
     - name: Install Postgis (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
+      env:
+        PGDATA: ${{ env.PGDATA }}
       run: |
         if (!(Test-Path "${{ inputs.cached-dir }}\*")) {
           Write-Error "Could not find PostGIS files in ${{ inputs.cached-dir }}"
           exit 1
         }
-        echo "Copied $((Copy-Item -Path "${{ inputs.cached-dir }}\*" -Destination $env:PGROOT -Force -Recurse -PassThru).count) PostGIS files to $env:PGROOT"
-        echo "Starting PostgreSQL and adding postgis extension"
-        $env:Path = "$env:PGBIN;" + $env:Path
-        & pg_ctl restart -D "$env:PGDATA"
-        & pg_isready
-
-    - name: Setup PostgreSQL for Linux/macOS/Windows
-      id: pg
-      uses: ikalnytskyi/action-setup-postgres@v6
-      with:
-        username: "${{ inputs.username }}"
-        password: "${{ inputs.password }}"
-        database: "${{ inputs.database }}"
-        port: "${{ inputs.port }}"
+        
+        # Set PG_ROOTDIR environment variable
+        echo "PG_ROOTDIR=$env:PROGRAMFILES\PostgreSQL\${{ steps.pg-version.outputs.version }}" >> $env:GITHUB_ENV
+        $env:PGROOT = "$env:PROGRAMFILES\PostgreSQL\${{ steps.pg-version.outputs.version }}"
+        
+        # Copy PostGIS files to PostgreSQL directory
+        echo "Copying PostGIS files to $env:PGROOT"
+        Copy-Item -Path "${{ inputs.cached-dir }}\*" -Destination $env:PGROOT -Force -Recurse -ErrorAction Continue
+        
+        # # Restart PostgreSQL service
+        # echo "Restarting PostgreSQL server"
+        # $env:Path = "$env:PG_BINDIR;" + $env:Path
+        # & pg_ctl restart -D "$env:PGDATA"
+        
+        # # Wait for PostgreSQL to be ready
+        # & pg_isready
 
     - name: Enable PostGIS extension
       run: psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;' '${{ steps.pg.outputs.connection-uri }}'
