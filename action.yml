@@ -185,14 +185,6 @@ runs:
         echo "Copying PostGIS files to $env:PGROOT"
         Copy-Item -Path "${{ inputs.cached-dir }}\*" -Destination $env:PGROOT -Force -Recurse -ErrorAction Continue
         
-        # # Restart PostgreSQL service
-        # echo "Restarting PostgreSQL server"
-        # $env:Path = "$env:PG_BINDIR;" + $env:Path
-        # & pg_ctl restart -D "$env:PGDATA"
-        
-        # # Wait for PostgreSQL to be ready
-        # & pg_isready
-
     - name: Enable PostGIS extension
       run: psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;' '${{ steps.pg.outputs.connection-uri }}'
       shell: bash
