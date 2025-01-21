@@ -66,6 +66,8 @@ jobs:
           password: GrandMaster
           database: jedi_order
           port: 34837
+          postgres-version: 17
+          postgis_version: 3.5.0
         id: postgres
 
       - name: Test PostGIS with connection URI
@@ -75,3 +77,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();'
         env:
           PGSERVICE: ${{ steps.postgres.outputs.service-name }}
+
+      - name: Verify PostGIS 3.5.0 installation on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT PostGIS_Full_Version();" "${{ steps.postgres.outputs.connection-uri }}" | findstr /C:"POSTGIS=3.5.0 3.5.0"
