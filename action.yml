@@ -86,7 +86,7 @@ runs:
         echo "Using PostgreSQL version: $PG_VERSION"
         Add-Content $env:GITHUB_OUTPUT "version=$PG_VERSION"
 
-    - name: Get PGDATA directory (Windows)
+    - name: Detect PGDATA directory (Windows)
       if: runner.os == 'Windows'
       id: pgdata
       shell: pwsh

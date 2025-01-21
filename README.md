@@ -31,15 +31,15 @@ steps:
 
 #### Input parameters
 
-| Key        | Value                                                                                                | Default     |
-|------------|------------------------------------------------------------------------------------------------------|-------------|
-| username   | The username of the user to setup.                                                                   | `postgres`  |
-| password   | The password of the user to setup.                                                                   | `postgres`  |
-| database   | The database name to setup and grant permissions to created user.                                    | `postgres`  |
-| port       | The server port to listen on.                                                                        | `5432`      |
-| postgres-version       | The version of PostgreSQL to install | required: false, default: 17     |
-| postgis_version       | The PostGIS version would be installed. Optional and for Windows runner only by now                                                                        | If leavel this empty, the latest PostGIS matched would be chosen. Avaliabel version numbers could be checked [here](https://download.osgeo.org/postgis/windows/). You must input the whole version numbers like `3.3.3`     |
-| cached-dir | Where should the temporary downloads be placed. Used to download and cache PostGIS binary.           | `downloads` |
+| Key              | Value                                                                                      | Default                                                                                                                                                                               |
+|------------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| username         | The username of the user to setup.                                                         | `postgres`                                                                                                                                                                            |
+| password         | The password of the user to setup.                                                         | `postgres`                                                                                                                                                                            |
+| database         | The database name to setup and grant permissions to created user.                          | `postgres`                                                                                                                                                                            |
+| port             | The server port to listen on.                                                              | `5432`                                                                                                                                                                                |
+| postgres-version | The PostgreSQL version to install.                                                         | `17`                                                                                                                                                                                  |
+| postgis_version  | **(Windows only)** The PostGIS version to installed.                                       | By default (empty), will use the latest. See available versions [here](https://download.osgeo.org/postgis/windows/). If set, must use the entire version string like `3.3.3`          |
+| cached-dir       | Where should the temporary downloads be placed. Used to download and cache PostGIS binary. | `downloads`                                                                                                                                                                           |
 
 #### Outputs
 
