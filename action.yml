@@ -95,7 +95,7 @@ runs:
         fi
 
         # Install from local file
-        brew install --HEAD -s ./postgis.rb
+        brew install --HEAD ./postgis.rb
 
         # Cleanup
         rm -f ./postgis.rb
