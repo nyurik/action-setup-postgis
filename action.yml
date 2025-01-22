@@ -87,9 +87,18 @@ runs:
           echo "Error: PostGIS version ${{ inputs.postgis_version }} is not supported on macOS"
           exit 1
         fi
-        
-        # Install specific version
-        brew install "$FORMULA_URL"
+
+        # Download formula file
+        if ! wget "$FORMULA_URL" -O ./postgis.rb; then
+          echo "Error: Failed to download formula from $FORMULA_URL"
+          exit 1
+        fi
+
+        # Install from local file
+        brew install --HEAD -s ./postgis.rb
+
+        # Cleanup
+        rm -f ./postgis.rb
 
     - name: Detect PostgreSQL Version (Windows)
       if: runner.os == 'Windows'
