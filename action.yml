@@ -73,8 +73,24 @@ runs:
     - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
       shell: bash
-      run: brew install postgis
+      run: |
+        # If no version specified, install latest
+        if [[ -z "${{ inputs.postgis_version }}" ]]; then
+          brew install postgis
+          exit 0
+        fi
         
+        # Read version mapping from JSON file
+        FORMULA_URL=$(jq -r '."${{ inputs.postgis_version }}"' ${GITHUB_ACTION_PATH}/postgis-macos-versions.json)
+        
+        if [[ "$FORMULA_URL" == "null" ]]; then
+          echo "Error: PostGIS version ${{ inputs.postgis_version }} is not supported on macOS"
+          exit 1
+        fi
+        
+        # Install specific version
+        brew install "$FORMULA_URL"
+
     - name: Detect PostgreSQL Version (Windows)
       if: runner.os == 'Windows'
       id: pg-version

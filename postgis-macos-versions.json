@@ -1,0 +1,8 @@
+{
+  "3.5.2": "https://raw.githubusercontent.com/Homebrew/homebrew-core/0e8cf73743fc1b148182ada18cbd1ea586e8b638/Formula/p/postgis.rb",
+  "3.5.1": "https://github.com/Homebrew/homebrew-core/raw/a78958a211e79d151309de3038d20add73306d6c/Formula/p/postgis.rb",
+  "3.5.0": "https://github.com/Homebrew/homebrew-core/raw/3c9711ac5aaa062e65960e4ee8286471782fbf6e/Formula/p/postgis.rb",
+  "3.4.3": "https://github.com/Homebrew/homebrew-core/raw/2858d71fabde44101eeb2a7bfbcf3b5ca2c2aa76/Formula/p/postgis.rb",
+  "3.4.2": "https://github.com/Homebrew/homebrew-core/raw/b1dbe7afb89d1860ed459b57d4e631de7c902462/Formula/p/postgis.rb",
+  "3.3.4": "https://github.com/Homebrew/homebrew-core/raw/e2bd03ca96b36d128fea8f72efe288269fe80fc6/Formula/p/postgis.rb"
+}
