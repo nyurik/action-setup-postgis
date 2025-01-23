@@ -66,7 +66,7 @@ jobs:
           password: GrandMaster
           database: jedi_order
           port: 34837
-          postgres-version: 17
+          postgres-version: 15
           postgis_version: 3.5.0
         id: postgres
 
