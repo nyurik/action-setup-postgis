@@ -116,7 +116,7 @@ runs:
         echo "==========================="
 
         # Install from local file
-        brew install --HEAD ./postgis.rb
+        brew install ./postgis.rb
 
         # Cleanup
         rm -f ./postgis.rb
