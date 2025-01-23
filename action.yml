@@ -82,6 +82,20 @@ runs:
         # Output version for next steps
         echo "version=$PG_VERSION" >> $GITHUB_OUTPUT
 
+    - name: Setup PostgreSQL environment (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        # Get PostgreSQL installation path using brew
+        PG_PREFIX=$(brew --prefix postgresql@${{ steps.pg-version-mac.outputs.version }})
+        echo "PostgreSQL prefix: $PG_PREFIX"
+        
+        # Set environment variables
+        echo "PATH=$PG_PREFIX/bin:$PATH" >> $GITHUB_ENV
+        echo "LDFLAGS=-L$PG_PREFIX/lib" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I$PG_PREFIX/include" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=$PG_PREFIX/lib/pkgconfig" >> $GITHUB_ENV
+
     - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
       shell: bash
