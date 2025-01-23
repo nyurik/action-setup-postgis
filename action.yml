@@ -85,6 +85,9 @@ runs:
     - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
       shell: bash
+      env: 
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+        HOMEBREW_NO_INSTALL_UPGRADE: true
       run: |
         # If no version specified, install latest
         if [[ -z "${{ inputs.postgis_version }}" ]]; then
