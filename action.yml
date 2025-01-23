@@ -70,6 +70,18 @@ runs:
         sudo apt-get install postgresql-$PG_VERSION-postgis-3
       shell: bash
 
+    - name: Check PostgreSQL version (macOS)
+      if: runner.os == 'macOS'
+      id: pg-version-mac
+      shell: bash
+      run: |
+        # Get major version using psql
+        PG_VERSION=$(psql -t -A -c "SELECT split_part(version(), ' ', 2)" '${{ steps.pg.outputs.connection-uri }}' | cut -d. -f1)
+        echo "Found PostgreSQL major version: $PG_VERSION"
+        
+        # Output version for next steps
+        echo "version=$PG_VERSION" >> $GITHUB_OUTPUT
+
     - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
       shell: bash
