@@ -125,8 +125,7 @@ runs:
 
         # Modify formula to depend on specific PostgreSQL version
         PG_VERSION="${{ steps.pg-version-mac.outputs.version }}"
-        sed -i '' 's/postgresql@[0-9]\+/postgresql@'"${PG_VERSION}"'/g' ./postgis.rb
-        
+        perl -i -pe 's/postgresql@\d+/postgresql@'"${PG_VERSION}"'/g' ./postgis.rb 
         # Show the entire modified formula
         echo "=== Modified formula content ==="
         cat ./postgis.rb
