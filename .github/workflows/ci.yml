@@ -79,6 +79,12 @@ jobs:
           PGSERVICE: ${{ steps.postgres.outputs.service-name }}
 
       - name: Verify PostGIS 3.5.0 installation on Windows
-        if: matrix.os == 'windows-latest' || matrix.os == 'macos-latest'
+        if: matrix.os == 'windows-latest'
         run: |
           psql -v ON_ERROR_STOP=1 -c "SELECT PostGIS_Full_Version();" "${{ steps.postgres.outputs.connection-uri }}" | findstr /C:"POSTGIS=3.5.0 3.5.0"
+
+      - name: Verify PostGIS 3.5.0 installation on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT PostGIS_Full_Version();" "${{ steps.postgres.outputs.connection-uri }}" | grep "3.5.0"
+        
