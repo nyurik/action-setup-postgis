@@ -106,6 +106,10 @@ runs:
           exit 1
         fi
 
+        # Modify formula to depend on specific PostgreSQL version
+        PG_VERSION="${{ steps.pg-version-mac.outputs.version }}"
+        sed -i '' "s/depends_on \"postgresql\"/depends_on \"postgresql@${PG_VERSION}\"/" ./postgis.rb
+
         # Install from local file
         brew install --HEAD ./postgis.rb
 
