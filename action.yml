@@ -91,7 +91,7 @@ runs:
       run: |
         # If no version specified, install latest
         if [[ -z "${{ inputs.postgis_version }}" ]]; then
-          brew install postgis
+          brew install postgis -v
           exit 0
         fi
         
@@ -119,7 +119,7 @@ runs:
         echo "==========================="
 
         # Install from local file
-        brew install ./postgis.rb
+        brew install ./postgis.rb -v
 
         # Cleanup
         rm -f ./postgis.rb
