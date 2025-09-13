@@ -30,7 +30,6 @@ jobs:
           - macos-13
           - macos-14  # M1 CPU
           - windows-latest
-          - windows-2019
           - windows-2022
     steps:
       - uses: actions/checkout@v4
