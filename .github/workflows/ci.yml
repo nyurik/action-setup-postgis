@@ -23,7 +23,6 @@ jobs:
       matrix:
         os:
           # Linux
-          - ubuntu-latest
           - ubuntu-24.04
           - ubuntu-22.04
           # Linux - ARM
@@ -32,12 +31,10 @@ jobs:
           # Legacy
           - macos-13
           # M1 CPU
-          - macos-latest
           - macos-14
           - macos-15
           - macos-26
           # Windows
-          - windows-latest
           - windows-2025
           - windows-2022
           # Windows ARM
