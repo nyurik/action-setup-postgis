@@ -44,19 +44,27 @@ jobs:
 
       - name: Resolve PostgreSQL port
         shell: bash
-        id: resolve-port
+        id: resolve-port-and-version
         run: |
-          if [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "ARM64" ]]; then
-            echo "port=34837" >> "$GITHUB_OUTPUT"
+          # fix arm64 port collision
+          if [[ "$(uname -s)" == "Linux" && "$(uname -m)" == "aarch64" ]]; then
+           echo "port=34837" >> "$GITHUB_OUTPUT"
           else
             echo "port=5432" >> "$GITHUB_OUTPUT"
           fi
+          # fix brew only supports postgres 14 with postgis
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "postgres-version=14" >> "$GITHUB_OUTPUT"
+          else
+            echo "postgres-version=16" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Run setup-postgis
-        uses: ./
-        with:
-          port: ${{ steps.resolve-port.outputs.port }}
         id: postgres
+	uses: ./
+	with:
+          port: ${{ steps.resolve-port.outputs.port }}
+	  postgres-version: "${{ steps.preflight.outputs.postgres-version }}"      
 
       - name: Test PostGIS with connection URI
         run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
