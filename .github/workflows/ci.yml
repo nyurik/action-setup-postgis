@@ -56,7 +56,7 @@ jobs:
           if [[ "$RUNNER_OS" == "macOS" ]]; then
             echo "postgres-version=14" >> "$GITHUB_OUTPUT"
           else
-            echo "postgres-version=16" >> "$GITHUB_OUTPUT"
+            echo "postgres-version=17" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run setup-postgis
