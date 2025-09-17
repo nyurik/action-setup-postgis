@@ -61,10 +61,10 @@ jobs:
 
       - name: Run setup-postgis
         id: postgres
-	uses: ./
-	with:
+        uses: ./
+        with:
           port: ${{ steps.resolve-port.outputs.port }}
-	  postgres-version: "${{ steps.preflight.outputs.postgres-version }}"      
+          postgres-version: "${{ steps.preflight.outputs.postgres-version }}"
 
       - name: Test PostGIS with connection URI
         run: psql -v ON_ERROR_STOP=1 -c 'SELECT PostGIS_Full_Version();' '${{ steps.postgres.outputs.connection-uri }}'
