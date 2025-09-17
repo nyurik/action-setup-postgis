@@ -42,8 +42,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Resolve PostgreSQL port
+        shell: bash
+        id: resolve-port
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" && "${{ runner.arch }}" == "ARM64" ]]; then
+            echo "port=34837" >> "$GITHUB_OUTPUT"
+          else
+            echo "port=5432" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run setup-postgis
         uses: ./
+        with:
+          port: ${{ steps.resolve-port.outputs.port }}
         id: postgres
 
       - name: Test PostGIS with connection URI
