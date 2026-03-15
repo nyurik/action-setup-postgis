@@ -46,7 +46,7 @@ runs:
   steps:
     - name: Setup PostgreSQL for Linux/macOS/Windows
       id: pg
-      uses: ikalnytskyi/action-setup-postgres@v7
+      uses: ikalnytskyi/action-setup-postgres@c4dda34aae1c821e3a771b68b73b13af3198a7ee # v8
       with:
         username: "${{ inputs.username }}"
         password: "${{ inputs.password }}"
@@ -138,7 +138,7 @@ runs:
 
     - name: Cache Postgis Download (Windows)
       if: runner.os == 'Windows'
-      uses: actions/cache@v4
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
       id: cache-downloads
       with:
         path: ${{ inputs.cached-dir }}
