@@ -70,11 +70,73 @@ runs:
         sudo apt-get install postgresql-$PG_VERSION-postgis-3
       shell: bash
 
+    - name: Check PostgreSQL version (macOS)
+      if: runner.os == 'macOS'
+      id: pg-version-mac
+      shell: bash
+      run: |
+        # Get major version using psql
+        PG_VERSION=$(psql -t -A -c "SELECT split_part(version(), ' ', 2)" '${{ steps.pg.outputs.connection-uri }}' | cut -d. -f1)
+        echo "Found PostgreSQL major version: $PG_VERSION"
+        
+        # Output version for next steps
+        echo "version=$PG_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Setup PostgreSQL environment (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        # Get PostgreSQL installation path using brew
+        PG_PREFIX=$(brew --prefix postgresql@${{ steps.pg-version-mac.outputs.version }})
+        echo "PostgreSQL prefix: $PG_PREFIX"
+        
+        # Set environment variables
+        echo "PATH=$PG_PREFIX/bin:$PATH" >> $GITHUB_ENV
+        echo "LDFLAGS=-L$PG_PREFIX/lib" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I$PG_PREFIX/include" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=$PG_PREFIX/lib/pkgconfig" >> $GITHUB_ENV
+
     - name: Install PostGIS on macOS
       if: runner.os == 'macOS'
       shell: bash
-      run: brew install postgis
+      env: 
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+        HOMEBREW_NO_INSTALL_UPGRADE: true
+      run: |
+        # If no version specified, install latest
+        if [[ -z "${{ inputs.postgis_version }}" ]]; then
+          brew install postgis -v
+          exit 0
+        fi
         
+        # Read version mapping from JSON file
+        FORMULA_URL=$(jq -r '."${{ inputs.postgis_version }}"' ${GITHUB_ACTION_PATH}/postgis-macos-versions.json)
+        
+        if [[ "$FORMULA_URL" == "null" ]]; then
+          echo "Error: PostGIS version ${{ inputs.postgis_version }} is not supported on macOS"
+          exit 1
+        fi
+
+        # Download formula file
+        if ! wget "$FORMULA_URL" -O ./postgis.rb; then
+          echo "Error: Failed to download formula from $FORMULA_URL"
+          exit 1
+        fi
+
+        # Replace all postgresql@X references with detected version
+        sed -i '' 's/postgresql@[0-9]*/postgresql@${{ steps.pg-version-mac.outputs.version }}/g' ./postgis.rb
+        
+        # Show the entire modified formula
+        echo "=== Modified formula content ==="
+        cat ./postgis.rb
+        echo "==========================="
+
+        # Install from local file
+        brew install ./postgis.rb -v -s
+
+        # Cleanup
+        rm -f ./postgis.rb
+
     - name: Detect PostgreSQL Version (Windows)
       if: runner.os == 'Windows'
       id: pg-version
